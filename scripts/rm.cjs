@@ -1,9 +1,10 @@
 const child_process = require('node:child_process');
 
-console.log('🤖 doing republish - commands');
-console.time('timing');
+console.log('🤖 doing prebuild');
+console.time('time building');
 
 child_process.spawnSync(`rm ${process.platform !== 'win32' ? '-rf' : ''} ../dist`);
 child_process.execSync(`pnpm tsc`);
 
-console.timeEnd('timing');
+console.timeEnd('time building');
+console.log('💚 done ts-build');

@@ -3,10 +3,11 @@ import { type Options } from '@/models';
 import { sort, sortedHashKeys } from '@/utils/sort';
 import { distManhattan } from '@/utils/distManhattan';
 import { distEuclidean } from '@/utils/distEuclidean';
-import { HueStats } from './hueStats';
 import { getImage } from '@/utils/getImage';
 import { makeBoxes } from '@/utils/makeBoxes';
 import { iterBox } from '@/utils/iterBox';
+
+import { HueStats } from './hueStats';
 
 export class QuantityImage {
   private options: Options;

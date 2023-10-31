@@ -7,7 +7,7 @@
     "prepare": "ts-patch install -s",
     "dev": "cross-env NODE_ENV=development node --watch -r @swc-node/register src/main.ts",
     "start": "cross-env NODE_ENV=production node dist/main.js",
-    "build": "cross-env NODE_ENV=production tsc",
+    "build": "node scripts/rm.cjs",
     "publish": "publish",
     "prepublish": "node scripts/rm.cjs",
     "test": "echo \"Error: no test specified\" && exit 1"
