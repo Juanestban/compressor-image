@@ -1,0 +1,11 @@
+# locks files
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# build
+build/
+dist/
+
+# node_modules
+node_modules
