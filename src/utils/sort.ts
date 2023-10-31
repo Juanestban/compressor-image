@@ -1,9 +1,9 @@
 import { typeOf } from './typeOf';
 
-const sort = isArraySortStable() ? Array.prototype.sort : stableSort;
+export const sort = isArraySortStable() ? Array.prototype.sort : stableSort;
 
 /** must be used via stableSort.call(array, fn) */
-function stableSort(this: any[], fn: any) {
+export function stableSort(this: any[], fn: any) {
   const type = typeOf(this[0]);
 
   if (type === 'Number' || type === 'String') {
@@ -17,14 +17,14 @@ function stableSort(this: any[], fn: any) {
       ord[val] = i;
     }
   } else {
-    let ord: any = this.map((v) => v);
+    const ord: any = this.map((v) => v);
 
     return this.sort((a, b) => fn(a, b) || ord.indexOf(a) - ord.indexOf(b));
   }
 }
 
-function isArraySortStable() {
-  var str = 'abcdefghijklmnopqrstuvwxyz';
+export function isArraySortStable() {
+  const str = 'abcdefghijklmnopqrstuvwxyz';
 
   return (
     'xyzvwtursopqmnklhijfgdeabc' ===
@@ -38,7 +38,7 @@ function isArraySortStable() {
 export const sortedHashKeys = (obj: any, desc: boolean) => {
   const keys = [];
 
-  for (let key in obj) {
+  for (const key in obj) {
     keys.push(key);
   }
 

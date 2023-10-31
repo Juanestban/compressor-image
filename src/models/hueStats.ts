@@ -5,13 +5,17 @@ export interface HueStatsTypes {
 
 export type Stats = Record<number, { num: number; cols: number[] }>;
 
-export type RgbHsl = {
+export interface RgbHsl {
   r: number;
   g: number;
   b: number;
-};
+}
 
-export type Hsl = { h: number; s: number; l: number };
+export interface Hsl {
+  h: number;
+  s: number;
+  l: number;
+}
 
 export enum HistGCase {
   ARRAY = 'Array',

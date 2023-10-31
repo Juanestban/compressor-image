@@ -28,12 +28,12 @@ export class HueStats implements HueStatsTypes {
       };
     }
 
-    let r = i32 & 0xff;
-    let g = (i32 & 0xff00) >> 8;
-    let b = (i32 & 0xff0000) >> 16;
-    let hg = r === g && g === b ? -1 : hueGroup(rgb2hsl({ r, g, b }).h, this.numGroups);
-    let gr = this.stats[hg];
-    let min = this.minCols;
+    const r = i32 & 0xff;
+    const g = (i32 & 0xff00) >> 8;
+    const b = (i32 & 0xff0000) >> 16;
+    const hg = r === g && g === b ? -1 : hueGroup(rgb2hsl({ r, g, b }).h, this.numGroups);
+    const gr = this.stats[hg];
+    const min = this.minCols;
 
     gr.num++;
 

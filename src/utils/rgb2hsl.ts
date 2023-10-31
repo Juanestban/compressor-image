@@ -1,17 +1,17 @@
-import { RgbHsl, Hsl } from '@/models';
+import { type RgbHsl, type Hsl } from '@/models';
 import { rgb2lum } from '@/utils/rgb2lum';
 
 /**
  * Docs link: http://rgb2hsl.nichabi.com/javascript-function.php
  */
 export const rgb2hsl = ({ r, g, b }: RgbHsl): Hsl => {
-  let max, min, h, s, l, d;
+  let h, s, d;
   r /= 255;
   g /= 255;
   b /= 255;
-  max = Math.max(r, g, b);
-  min = Math.min(r, g, b);
-  l = (max + min) / 2;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
 
   if (max === min) {
     h = s = 0;

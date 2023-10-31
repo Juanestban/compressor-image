@@ -1,6 +1,6 @@
-import { Options } from '@/models';
+import { type Options } from '@/models';
 
-export const DEFAULT_OPTIONS: Options = {
+export const DEFAULT_OPTIONS: Options<'manhattam' | 'euclidean'> = {
   method: 2,
   colors: 256,
   initColor: 4096,
