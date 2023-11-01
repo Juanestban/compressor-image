@@ -1,5 +1,5 @@
-import { DEFAULT_OPTIONS, SampleMethods, methodsCases } from '@/constants';
-import { type Image, type Options } from '@/models';
+import { DEFAULT_OPTIONS, SampleMethods, methodsCases, KERNELS as kernels } from '@/constants';
+import { type Image, type Options, type Kernel } from '@/models';
 import { sort, sortedHashKeys } from '@/utils/sort';
 import { distManhattan } from '@/utils/distManhattan';
 import { distEuclidean } from '@/utils/distEuclidean';
@@ -61,13 +61,12 @@ export class QuantityImage {
     selfMethods[this.options.method as SampleMethods];
   }
 
-  // TODO: missing this function
   /**
    * image quantizer
    * TODO: memoize colors here also
    * @retType: 1 - Uint8Array (default), 2 - Indexed array, 3 - Match @img type (unimplemented, todo)
    */
-  reduce(img: Image, retType: number, dithKern?: string | null, dithSerp?: boolean) {
+  reduce(img: Image, retType: number, dithKern?: Kernel | null, dithSerp?: boolean) {
     if (!this.palLocked) {
       this.buildPal();
     }
@@ -78,7 +77,7 @@ export class QuantityImage {
     let out32: Uint32Array;
 
     if (dithKern) {
-      out32 = this.dither(img, dithKern2, dithSerp2);
+      out32 = this.dither(img, dithKern2 as Kernel, dithSerp2);
     } else {
       const { buf32 } = getImage(img);
       const len = buf32?.length ?? 0;
@@ -107,9 +106,88 @@ export class QuantityImage {
     }
   }
 
-  // TODO: missing this function
-  dither(img: any, dithKern: any, dithSerp: any): Uint32Array {
-    return new Uint32Array([]);
+  dither(img: any, kernel: Kernel, serpentine: any): Uint32Array {
+    if (!kernel || kernels[kernel]) {
+      throw new Error(`Unknow dithering kernel: ${kernel}`);
+    }
+
+    const ds = kernels[kernel];
+    const { buf32, width, height } = getImage(img);
+    const buffer32 = buf32 as Uint32Array;
+    let dir = serpentine ? -1 : 1;
+    const newWidth = width ?? 0;
+    const newHeight = height ?? 0;
+
+    for (let y = 0; y < newHeight; y++) {
+      if (serpentine) {
+        dir *= -1;
+      }
+
+      const lni = y * (width ?? 0);
+
+      for (
+        let x = dir === 1 ? 0 : newWidth - 1, xend = dir === 1 ? newWidth : 0;
+        x !== xend;
+        x += dir
+      ) {
+        const idx = lni + x;
+        const i32 = buffer32[idx];
+        const r1 = i32 & 0xff;
+        const g1 = (i32 & 0xff00) >> 8;
+        const b1 = (i32 & 0xff0000) >> 16;
+
+        const i32x = this.nearestColor(i32);
+        const r2 = i32x & 0xff;
+        const g2 = (i32x & 0xff00) >> 8;
+        const b2 = (i32x & 0xff0000) >> 16;
+
+        buffer32[idx] =
+          (255 << 24) | // alpha
+          (b2 << 16) | // blue
+          (g2 << 8) | // green
+          r2;
+
+        if (this.options.dithDelta) {
+          const dist = this.colorDist([r1, g1, b1], [r2, g2, b2]);
+          if (dist < this.options.dithDelta) continue;
+        }
+
+        // distance component
+        const er = r1 - r2;
+        const eg = g1 - g2;
+        const eb = b1 - b2;
+
+        for (
+          let i = dir === 1 ? 0 : ds.length - 1, end = dir === 1 ? ds.length : 0;
+          i !== end;
+          i += dir
+        ) {
+          const x1 = ds[i][1] * dir;
+          const y1 = ds[i][2];
+          const lni2 = y1 * newWidth;
+
+          if (x1 + x >= 0 && x1 + x < newWidth && y1 + y >= 0 && y1 + y < newHeight) {
+            const d = ds[i][0];
+            const idx2 = idx + (lni2 + x1);
+            const r3 = buffer32[idx2] & 0xff;
+            const g3 = (buffer32[idx2] & 0xff00) >> 8;
+            const b3 = (buffer32[idx2] & 0xff0000) >> 16;
+
+            const r4 = Math.max(0, Math.min(255, r3 + er * d));
+            const g4 = Math.max(0, Math.min(255, g3 + eg * d));
+            const b4 = Math.max(0, Math.min(255, b3 + eb * d));
+
+            buffer32[idx2] =
+              (255 << 24) | // alpha
+              (b4 << 16) | // blue
+              (g4 << 8) | // green
+              r4;
+          }
+        }
+      }
+    }
+
+    return buffer32;
   }
 
   buildPal(noSort?: boolean) {

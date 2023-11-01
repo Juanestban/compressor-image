@@ -26,7 +26,7 @@ export interface Options<T extends any = unknown> {
   /** c */
   boxPxls?: number;
   /** diffusion kernel name */
-  dithKern?: string | null;
+  dithKern?: Kernel | null;
   /** c */
   dithSerp?: boolean;
   /** c */
@@ -44,3 +44,14 @@ export interface Options<T extends any = unknown> {
   /** c */
   palete: number[][];
 }
+
+export type Kernel =
+  | 'FloydSteinberg'
+  | 'FalseFloydSteinberg'
+  | 'Stucki'
+  | 'Atkinson'
+  | 'Jarvis'
+  | 'Burkes'
+  | 'Sierra'
+  | 'TwoSierra'
+  | 'SierraLite';
