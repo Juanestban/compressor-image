@@ -3,46 +3,46 @@ export interface QuantityImageProps {
 }
 
 export interface Options<T extends any = unknown> {
-  /** c */
+  /** 1: manhattam | 2: euclidean */
   method?: number;
-  /** c */
+  /** type of number */
   colors?: number;
-  /** c */
+  /** init color type of number */
   initColor?: number;
-  /** c */
+  /** number */
   initDist?: number;
-  /** c */
+  /** number */
   distIncr?: number;
-  /** c */
+  /** number */
   hueGroups?: number;
-  /** c */
+  /** number */
   satGroups?: number;
-  /** c */
+  /** number */
   lumGroups?: number;
-  /** c */
+  /** number */
   minHueCols?: number;
-  /** c */
+  /** array of numbers */
   boxSize?: number[];
-  /** c */
+  /** number */
   boxPxls?: number;
   /** diffusion kernel name */
   dithKern?: Kernel | null;
-  /** c */
+  /** boolean */
   dithSerp?: boolean;
-  /** c */
+  /** number */
   dithDelta?: number;
-  /** c */
+  /** boolean */
   useCache?: boolean;
-  /** c */
+  /** number */
   cacheFreq?: number;
-  /** c */
+  /** boolean */
   reIndex?: boolean;
-  /** c */
+  /** Template */
   colorDist?: T;
-  /** c */
+  /** number */
   colorFreq?: number;
-  /** c */
-  palete: number[][];
+  /** array of arrays of numbers */
+  palette: number[][];
 }
 
 export type Kernel =

@@ -22,13 +22,13 @@ export class QuantityImage {
   protected i32idx: any[] = [];
   protected colorDist;
 
-  constructor({ options } = { options: DEFAULT_OPTIONS }) {
+  constructor(options = DEFAULT_OPTIONS) {
     this.options = options;
     this.hueStats = this.options.minHueCols
       ? new HueStats(this.options.hueGroups as number, this.options.minHueCols)
       : null;
 
-    this.idxrgb = this.options.palete ? this.options.palete.slice(0) : [];
+    this.idxrgb = this.options.palette ? this.options.palette.slice(0) : [];
     this.colorDist = this.options.colorDist === 'manhattan' ? distManhattan : distEuclidean;
 
     // if pre-defined palette, build lookups

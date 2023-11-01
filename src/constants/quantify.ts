@@ -19,7 +19,7 @@ export const DEFAULT_OPTIONS: Options<'manhattam' | 'euclidean'> = {
   cacheFreq: 10,
   reIndex: false,
   colorDist: undefined,
-  palete: [],
+  palette: [],
 };
 
 export enum methodsCases {

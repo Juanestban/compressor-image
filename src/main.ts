@@ -3,8 +3,12 @@
  * Github: https://github.com/Juanestban
  */
 
-import { QuantityImage } from '@/controllers/quantify-image';
-
-const quantifyImage = new QuantityImage();
-
-console.log(quantifyImage);
+export { QuantityImage } from '@/controllers/quantify-image';
+export {
+  gray4bit,
+  rgb3level,
+  rgb6bit,
+  KERNELS,
+  DEFAULT_OPTIONS as defaultOptions,
+} from '@/constants';
+export { type Kernel, type Image, type Options } from '@/models';
