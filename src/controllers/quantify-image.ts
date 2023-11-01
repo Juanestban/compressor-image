@@ -1,5 +1,5 @@
 import { DEFAULT_OPTIONS, SampleMethods, methodsCases } from '@/constants';
-import { type Options } from '@/models';
+import { type Image, type Options } from '@/models';
 import { sort, sortedHashKeys } from '@/utils/sort';
 import { distManhattan } from '@/utils/distManhattan';
 import { distEuclidean } from '@/utils/distEuclidean';
@@ -61,11 +61,58 @@ export class QuantityImage {
     selfMethods[this.options.method as SampleMethods];
   }
 
-  reduce() {}
+  // TODO: missing this function
+  /**
+   * image quantizer
+   * TODO: memoize colors here also
+   * @retType: 1 - Uint8Array (default), 2 - Indexed array, 3 - Match @img type (unimplemented, todo)
+   */
+  reduce(img: Image, retType: number, dithKern?: string | null, dithSerp?: boolean) {
+    if (!this.palLocked) {
+      this.buildPal();
+    }
 
-  dither() {}
+    const dithKern2 = dithKern ?? this.options.dithKern;
+    const dithSerp2 = typeof dithSerp !== 'undefined' ? dithSerp : this.options.dithSerp;
+    const retType2 = retType ?? 1;
+    let out32: Uint32Array;
 
-  buildPal(noSort: boolean) {
+    if (dithKern) {
+      out32 = this.dither(img, dithKern2, dithSerp2);
+    } else {
+      const { buf32 } = getImage(img);
+      const len = buf32?.length ?? 0;
+      out32 = new Uint32Array(len);
+
+      for (let i = 0; i < len; i++) {
+        const i32 = (buf32 as Uint32Array)[i];
+        out32[i] = this.nearestColor(i32);
+      }
+    }
+
+    if (retType2 === 1) {
+      return new Uint8Array(out32.buffer);
+    }
+
+    if (retType2 === 2) {
+      const out = [];
+      const len = out32.length;
+
+      for (let i = 0; i < len; i++) {
+        const i32 = out32[i];
+        out[i] = this.i32idx[i32];
+      }
+
+      return out;
+    }
+  }
+
+  // TODO: missing this function
+  dither(img: any, dithKern: any, dithSerp: any): Uint32Array {
+    return new Uint32Array([]);
+  }
+
+  buildPal(noSort?: boolean) {
     if (
       this.palLocked ||
       (this.idxrgb.length > 0 && this.idxrgb.length <= (this.options.colors as number))
@@ -127,6 +174,7 @@ export class QuantityImage {
     return tuples ? this.idxrgb : new Uint8Array(new Uint32Array(this.idxi32).buffer);
   }
 
+  // TODO: missing this function
   prunePal(keep: Record<any, any>) {}
 
   reducePal(idxi32: any[]) {
@@ -275,13 +323,19 @@ export class QuantityImage {
     if (this.hueStats) this.hueStats.inject(histG);
   }
 
+  // TODO: missing this function
   sortPal() {}
 
-  nearestColor() {}
+  // TODO: missing this function
+  nearestColor(i32: number): number {
+    return 0;
+  }
 
+  // TODO: missing this function
   nearestIndex(i32: string): string {
     return '';
   }
 
+  // TODO: missing this function
   cacheHistogram(idxi32: any[]) {}
 }

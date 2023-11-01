@@ -2,7 +2,7 @@ import { ImageDataCases } from '@/constants';
 import { typeOf } from './typeOf';
 import { type Elements, type Image } from '@/models';
 
-export const getImage = (img: Image, width: number) => {
+export const getImage = (img: Image, width?: number) => {
   const el: Elements = {
     canvas: undefined,
     ctx: undefined,
@@ -66,7 +66,7 @@ export const getImage = (img: Image, width: number) => {
       el.buf32 = el.buf32 ?? (img as Uint32Array);
       el.buf8 = el.buf8 ?? new Uint8Array(el.buf32.buffer);
       el.width = width ?? el.buf32.length;
-      el.height = el.buf32.length / width;
+      el.height = el.buf32.length / (width ?? 1);
     },
   };
   cases[typeOf(img) as ImageDataCases]();
