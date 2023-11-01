@@ -8,13 +8,15 @@ import { makeBoxes } from '@/utils/makeBoxes';
 import { iterBox } from '@/utils/iterBox';
 
 import { HueStats } from './hueStats';
+import { rgb2hsl } from '@/utils/rgb2hsl';
+import { hueGroup } from '@/utils/hueGroup';
 
 export class QuantityImage {
   private options: Options;
   protected hueStats: HueStats | null;
   protected palLocked = false;
   protected histogram: Record<number, number> = {};
-  protected idxrgb: number[][];
+  protected idxrgb: (number[] | null)[];
   protected i32rgb: number[][] = [];
   protected idxi32: any[] = [];
   protected i32idx: any[] = [];
@@ -32,20 +34,22 @@ export class QuantityImage {
     // if pre-defined palette, build lookups
     if (this.idxrgb.length > 0) {
       this.idxrgb.forEach((rgb, i) => {
+        const RGB = rgb as number[];
         const i32 =
           ((255 << 24) | // alpha
-            (rgb[2] << 16) | // blue
-            (rgb[1] << 8) | // green
-            rgb[0]) >>> // red
+            (RGB[2] << 16) | // blue
+            (RGB[1] << 8) | // green
+            RGB[0]) >>> // red
           0;
 
         this.idxi32[i] = i32;
         this.i32idx[i32] = i;
-        this.i32rgb[i32] = rgb;
+        this.i32rgb[i32] = RGB;
       });
     }
   }
 
+  /** gathers histogram info */
   sample(img: string, width: number) {
     if (this.palLocked) {
       throw new Error('Cannot sample additional images, palette already assembled.');
@@ -106,6 +110,7 @@ export class QuantityImage {
     }
   }
 
+  /** adapted from http://jsbin.com/iXofIji/2/edit by PAEz */
   dither(img: any, kernel: Kernel, serpentine: any): Uint32Array {
     if (!kernel || kernels[kernel]) {
       throw new Error(`Unknow dithering kernel: ${kernel}`);
@@ -190,6 +195,7 @@ export class QuantityImage {
     return buffer32;
   }
 
+  /** reduces histogram to palette, remaps & memoizes reduced colors */
   buildPal(noSort?: boolean) {
     if (
       this.palLocked ||
@@ -252,9 +258,41 @@ export class QuantityImage {
     return tuples ? this.idxrgb : new Uint8Array(new Uint32Array(this.idxi32).buffer);
   }
 
-  // TODO: missing this function
-  prunePal(keep: Record<any, any>) {}
+  prunePal(keep: Record<any, any>) {
+    let i32;
 
+    for (let j = 0; j < this.idxrgb.length; j++) {
+      if (!keep[j]) {
+        i32 = this.idxi32[j];
+        this.idxrgb[j] = null;
+        this.idxi32[j] = null;
+        delete this.i32idx[i32];
+      }
+    }
+
+    // compact
+    if (this.options.reIndex) {
+      const idxrgb = [];
+      const idxi32 = [];
+      const i32idx: any = {};
+
+      for (let j = 0, i = 0; j < this.idxrgb.length; j++) {
+        if (this.idxrgb[j]) {
+          i32 = this.idxi32[j];
+          idxrgb[i] = this.idxrgb[j];
+          i32idx[i32] = i;
+          idxi32[i] = i32;
+          i++;
+        }
+      }
+
+      this.idxrgb = idxrgb;
+      this.idxi32 = idxi32;
+      this.i32idx = i32idx;
+    }
+  }
+
+  /** reduces similar colors from an importance-sorted Uint32 rgba array */
   reducePal(idxi32: any[]) {
     const colors = this.options.colors as number;
 
@@ -271,7 +309,7 @@ export class QuantityImage {
           pruned = true;
         }
 
-        idx = this.nearestIndex(this.idxi32[i]);
+        idx = this.nearestIndex(this.idxi32[i]) as number;
 
         if (uniques < colors && !pruned) {
           keep[idx] = true;
@@ -344,6 +382,7 @@ export class QuantityImage {
     }
   }
 
+  /** global top-population */
   colorStats1D(buf32: Uint32Array) {
     const histG = this.histogram;
     let col;
@@ -366,6 +405,12 @@ export class QuantityImage {
     }
   }
 
+  /**
+   *
+   * population threshold within subregions
+   * FIXME: this can over-reduce (few/no colors same?), need a way to keep
+   * important colors that dont ever reach local thresholds (gradients?)
+   */
   colorStats2D(buf32: Uint32Array, width: number) {
     const boxSize = this.options.boxSize as number[];
     const boxW = boxSize[0];
@@ -401,19 +446,105 @@ export class QuantityImage {
     if (this.hueStats) this.hueStats.inject(histG);
   }
 
-  // TODO: missing this function
-  sortPal() {}
+  lumGroup(lum: any) {
+    return lum;
+  }
 
-  // TODO: missing this function
+  satGroup(sat: any) {
+    return sat;
+  }
+
+  /**
+   * TODO: group very low lum and very high lum colors
+   * TODO: pass custom sort order
+   */
+  sortPal() {
+    this.idxi32.sort((a, b) => {
+      const idxA = this.i32idx[a];
+      const idxB = this.i32idx[b];
+      const rgbA = this.idxrgb[idxA] as any;
+      const rgbB = this.idxrgb[idxB] as any;
+
+      const hslA = rgb2hsl({ r: rgbA[0], g: rgbA[1], b: rgbA[2] });
+      const hslB = rgb2hsl({ r: rgbB[0], g: rgbB[1], b: rgbB[2] });
+
+      // sort all grays + whites together
+      const hueA =
+        rgbA[0] === rgbA[1] && rgbA[1] === rgbA[2]
+          ? -1
+          : hueGroup(hslA.h, this.options.hueGroups as number);
+      const hueB =
+        rgbB[0] === rgbB[1] && rgbB[1] === rgbB[2]
+          ? -1
+          : hueGroup(hslB.h, this.options.hueGroups as number);
+
+      const hueDiff = hueB - hueA;
+
+      if (hueDiff) return -hueDiff;
+
+      const lumDiff = this.lumGroup(+hslB.l.toFixed(2)) - this.lumGroup(+hslA.l.toFixed(2));
+
+      if (lumDiff) return -lumDiff;
+
+      const satDiff = this.satGroup(+hslB.s.toFixed(2)) - this.satGroup(+hslA.s.toFixed(2));
+
+      if (satDiff) return -satDiff;
+
+      return 0;
+    });
+
+    // sync idxrgb & i32idx
+    this.idxi32.forEach((i32, i) => {
+      this.idxrgb[i] = this.i32rgb[i32];
+      this.i32idx[i32] = i;
+    });
+  }
+
+  /**
+   * TODO: TOTRY use HUSL - http://boronine.com/husl/
+   */
   nearestColor(i32: number): number {
-    return 0;
+    const idx = this.nearestIndex(i32);
+
+    return idx === null ? 0 : this.idxi32[idx];
   }
 
-  // TODO: missing this function
-  nearestIndex(i32: string): string {
-    return '';
+  /**
+   * TODO: TOTRY use HUSL - http://boronine.com/husl/
+   */
+  nearestIndex(i32: number): number | null {
+    // alpha 0 returns null index
+    if ((i32 & 0xff000000) >> 24 === 0) return null;
+
+    if (this.options.useCache && '' + i32 in this.i32idx) return this.i32idx[i32];
+
+    let min = 1000;
+    let idx = 0;
+    const rgb = [i32 & 0xff, (i32 & 0xff00) >> 8, (i32 & 0xff0000) >> 16];
+    const len = this.idxrgb.length;
+
+    for (let i = 0; i < len; i++) {
+      if (!this.idxrgb[i]) continue; // sparse palettes
+
+      const dist = this.colorDist(rgb, this.idxrgb[i] as number[]);
+
+      if (dist < min) {
+        min = dist;
+        idx = i;
+      }
+    }
+
+    return idx;
   }
 
-  // TODO: missing this function
-  cacheHistogram(idxi32: any[]) {}
+  cacheHistogram(idxi32: any[]) {
+    const freq = this.options.cacheFreq as number;
+    for (
+      let i = 0, i32 = idxi32[i];
+      i < idxi32.length && this.histogram[i32] >= freq;
+      i32 = idxi32[i++]
+    ) {
+      this.i32idx[i32] = this.nearestIndex(i32);
+    }
+  }
 }
