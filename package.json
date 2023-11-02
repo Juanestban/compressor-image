@@ -1,6 +1,6 @@
 {
   "name": "compressor-image",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "",
   "main": "dist/main.js",
   "scripts": {
@@ -8,7 +8,6 @@
     "dev": "cross-env NODE_ENV=development node --watch -r @swc-node/register src/main.ts",
     "start": "cross-env NODE_ENV=production node dist/main.js",
     "build": "node scripts/rm.cjs",
-    "publish": "publish",
     "prepublish": "node scripts/rm.cjs"
   },
   "keywords": [],
