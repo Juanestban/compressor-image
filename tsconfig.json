@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "NodeNext",
+    "module": "ES6",
     "allowJs": true,
     "checkJs": true,
     "declaration": true,
@@ -12,7 +12,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "Bundler",
     "importsNotUsedAsValues": "remove",
     "strict": true,
     "experimentalDecorators": true,

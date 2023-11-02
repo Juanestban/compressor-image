@@ -3,3 +3,5 @@
  * Github: https://github.com/Juanestban
  */
 
+export { compressor } from '@/controllers/compressor';
+export { getFileBlob } from '@/controllers/getFileBlob';

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload image and compressor image</title>
+  </head>
+  <body>
+    <div id="app">
+      <label>
+        upload any image
+        <input id="input" type="file" accept="image/png,image/jpeg,image/jpg" />
+      </label>
+      <input id="range" type="range" value="80" />
+      <div id="wrapper" style="display: flex; gap: 20px">
+        <img id="original-image" alt="original-image" />
+      </div>
+    </div>
+    <script type="module">
+      import { compressor } from '/public/dist/main.js';
+
+      document.querySelector('#input').addEventListener('change', async ({ target: { files } }) => {
+        const file = files[0];
+        const originalImge = document.querySelector('#original-image');
+        const rangeInput = document.querySelector('#range');
+        originalImge.src = URL.createObjectURL(file);
+        const { blob, urlImage } = await compressor({
+          fileImage: file,
+          percentage: parseInt(rangeInput.value),
+        });
+        const img = document.createElement('img');
+
+        console.log(blob);
+
+        img.src = urlImage;
+        document.querySelector('#wrapper').appendChild(img);
+      });
+    </script>
+  </body>
+</html>
