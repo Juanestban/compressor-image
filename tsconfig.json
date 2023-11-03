@@ -18,7 +18,7 @@
     "experimentalDecorators": true,
     "downlevelIteration": true,
     "skipLibCheck": true,
-    "lib": ["ES2015", "DOM"],
+    "lib": ["ES2015", "ESNext", "DOM"],
     "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
