@@ -5,3 +5,4 @@
 
 export { compressor, compressorAll } from '@/controllers/compressor';
 export { getFileBlob } from '@/controllers/getFileBlob';
+export { getFile } from '@/utils/getFile';
