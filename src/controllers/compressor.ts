@@ -31,7 +31,7 @@ export const compressor = async ({
         );
       };
 
-      image.src = URL.createObjectURL(fileImage);
+      image.src = typeof fileImage === 'string' ? fileImage : URL.createObjectURL(fileImage);
     });
     const urlImage = URL.createObjectURL(blob);
 

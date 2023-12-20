@@ -1,5 +1,5 @@
 export interface Compressor {
-  fileImage: Blob | MediaSource;
+  fileImage: Blob | MediaSource | string;
   filename?: string;
   type?: `image/${'jpg' | 'jpeg' | 'webp' | 'png'}`;
   percentage?: number;
